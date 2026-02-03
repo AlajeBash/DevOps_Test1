@@ -1,10 +1,19 @@
 from django.shortcuts import render, redirect
 from django.core.files.base import ContentFile
 from .models import UploadedImage
-from rembg import remove
+from rembg import remove, new_session
 from PIL import Image
 import io
 import os
+
+# Global variable to hold the session
+session = None
+
+def get_session():
+    global session
+    if session is None:
+        session = new_session("u2net")
+    return session
 
 def index(request):
     if request.method == 'POST' and request.FILES.get('image'):
@@ -12,18 +21,15 @@ def index(request):
         original_file = request.FILES['image']
         obj = UploadedImage.objects.create(original_image=original_file)
         
-        # 2. Get the path to the original image
-        input_path = obj.original_image.path
+        # 2. Read image and remove background
+        # Using .open() and .read() makes it compatible with both local and S3 storage
+        input_data = obj.original_image.open('rb').read()
         
-        # 3. Read image and remove background
-        with open(input_path, 'rb') as i:
-            input_data = i.read()
-            # rembg.remove does the AI magic here
-            output_data = remove(input_data)
+        # rembg.remove does the AI magic here
+        output_data = remove(input_data, session=get_session())
         
-        # 4. Save the processed image back to the model
-        # We use ContentFile to save the bytes from memory directly into the ImageField
-        processed_filename = f"bg_removed_{os.path.basename(input_path)}"
+        # 3. Save the processed image back to the model
+        processed_filename = f"bg_removed_{os.path.basename(obj.original_image.name)}"
         obj.processed_image.save(processed_filename, ContentFile(output_data))
         obj.save()
         
