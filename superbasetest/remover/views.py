@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.core.files.base import ContentFile
+from django.http import JsonResponse
 from .models import UploadedImage
 from rembg import remove, new_session
 from PIL import Image
@@ -32,6 +33,14 @@ def index(request):
         processed_filename = f"bg_removed_{os.path.basename(obj.original_image.name)}"
         obj.processed_image.save(processed_filename, ContentFile(output_data))
         obj.save()
+        
+        # Check if this is an AJAX request
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'original_url': obj.original_image.url,
+                'processed_url': obj.processed_image.url
+            })
         
         return render(request, 'remover/index.html', {
             'obj': obj,

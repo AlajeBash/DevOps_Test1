@@ -25,7 +25,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/magic-remover
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/magic-remover:latest
           # This helps speed up builds by caching layers
           cache-from: type=gha
           cache-to: type=gha,mode=max

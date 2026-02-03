@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -58,21 +59,55 @@
             transition: transform 0.3s ease;
         }
 
-        .upload-form {
+        .drop-zone {
+            border: 2px dashed #4b5563;
+            border-radius: 16px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            justify-content: center;
         }
 
-        input[type="file"] {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
+        .drop-zone.highlight {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            color: #94a3b8;
+        }
+
+        .drop-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .support-text {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
             border-radius: 12px;
-            border: 1px dashed #4b5563;
-            cursor: pointer;
-            width: 100%;
-            max-width: 400px;
+            display: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
         }
 
         button {
@@ -94,39 +129,6 @@
             filter: brightness(1.1);
         }
 
-        .result-container {
-            margin-top: 50px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .image-box {
-            background: rgba(0,0,0,0.2);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
-        }
-
-        .image-box img {
-            width: 100%;
-            display: block;
-        }
-
-        .label {
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            font-size: 0.9rem;
-            color: #94a3b8;
-        }
-
-        .download-btn {
-            grid-column: span 2;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
         .loader {
             display: none;
             margin-top: 20px;
@@ -143,20 +145,174 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Comparison Slider */
+        .result-container {
+            margin-top: 50px;
+        }
+
+        .comparison-slider {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            aspect-ratio: 16/9;
+            /* Initial aspect ratio, JS can adjust */
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            cursor: ew-resize;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIiBmaWxsPSJub25lIj48cGF0aCBkPSJNMCAwaDIwdjIwSDB6IiBmaWxsPSIjMWUxYjRiIi8+PHBhdGggZD0iTTAgMTBoMTB2MTBIMHoiIGZpbGw9IiMwZjE3MmEiLz48cGF0aCBkPSJNMTAgMGgxMHYxMEgxMHoiIGZpbGw9IiMwZjE3MmEiLz48L3N2Zz4=');
+            /* Checkerboard pattern */
+        }
+
+        .img-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .bg-layer {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .img-wrapper.modified {
+            width: 50%;
+            /* Initial state */
+            z-index: 2;
+            border-right: 2px solid white;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+        }
+
+        .handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: white;
+            z-index: 3;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .handle-circle {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+
+        .handle-circle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Background Control Styles */
+        .bg-controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .swatch:hover,
+        .swatch.active {
+            transform: scale(1.1);
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .swatch.transparent {
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIHZpZXdCb3g9IjAgMCA4IDgiIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Ik0wIDBoNHY0SDB6IiBmaWxsPSIjY2NjIi8+PHBhdGggZD0iTTQgNGg0djRINFoiIGZpbGw9IiNjY2MiLz48L3N2Zz4=');
+        }
+
+        .custom-upload-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .custom-upload-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .error-message {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         @media (max-width: 768px) {
-            .result-container {
-                grid-template-columns: 1fr;
-            }
             header h1 {
                 font-size: 2.5rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -167,29 +323,121 @@
         <section class="upload-card">
             <form action="" method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
                 {% csrf_token %}
-                <input type="file" name="image" accept="image/*" required>
-                <button type="submit" id="submitBtn">Remove Background</button>
+
+                <!-- Drag & Drop Zone -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-content">
+                        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                            </path>
+                        </svg>
+                        <p class="drop-text">Drag & Drop your image here or <span
+                                style="color: var(--secondary); cursor: pointer; text-decoration: underline;">Browse</span>
+                        </p>
+                        <p class="support-text">Supports PNG, JPG, JPEG</p>
+                    </div>
+                    <input type="file" name="image" id="fileInput" accept="image/*" hidden>
+
+                    <!-- Preview Image -->
+                    <img id="previewImage" class="preview-img" alt="Preview">
+                </div>
+
+                <div class="actions" id="actionButtons" style="display: none;">
+                    <button type="submit" id="submitBtn">Remove Background</button>
+                    <button type="button" id="clearBtn" style="background: rgba(255,255,255,0.1);">Clear</button>
+                </div>
+
                 <div class="loader" id="loader">
                     <div class="spinner"></div>
                     <p style="margin-top:10px; color:#94a3b8;">Processing with AI...</p>
                 </div>
             </form>
 
-            {% if success %}
-            <div class="result-container">
-                <div class="image-box">
-                    <div class="label">Original</div>
-                    <img src="{{ obj.original_image.url }}" alt="Original">
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            <!-- Result Comparision Slider -->
+            <div class="result-container" id="resultContainer" style="display: none;">
+                <h3 style="margin-bottom: 20px; color: #cbd5e1;">Before / After Comparison</h3>
+
+                <div class="comparison-slider" id="comparisonSlider">
+                    <!-- Background Layer (Result sits here) -->
+                    <div class="img-wrapper bg-layer" id="bgLayer" style="width: 100%;">
+                        <!-- Processed (Transparent) -->
+                        <img id="resultImage" src="" alt="Processed" crossorigin="anonymous">
+                    </div>
+
+                    <!-- Overlay Layer (Original Image) -->
+                    <div class="img-wrapper overlay-layer modified" style="width: 50%; border-right: 2px solid white;">
+                        <!-- Original -->
+                        <img id="originalImageResult" src="" alt="Original" crossorigin="anonymous">
+                    </div>
+
+                    <div class="handle">
+                        <div class="handle-line"></div>
+                        <div class="handle-circle">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-                <div class="image-box">
-                    <div class="label">Result (Transparent)</div>
-                    <img src="{{ obj.processed_image.url }}" alt="Processed">
+
+                <p style="margin-top: 10px; color: #94a3b8; font-size: 0.9rem;">Drag slider to compare</p>
+
+                <!-- Background Controls -->
+                <div class="bg-controls">
+                    <div style="font-weight: 600; color: #cbd5e1; font-size: 0.95rem;">Customize Background</div>
+                    <div class="color-picker" id="colorPicker">
+                        <div class="swatch transparent active" data-type="transparent" title="Transparent mode"></div>
+                        <div class="swatch" style="background: #ffffff;" data-type="color" data-value="#ffffff"></div>
+                        <div class="swatch" style="background: #000000;" data-type="color" data-value="#000000"></div>
+                        <div class="swatch" style="background: #ef4444;" data-type="color" data-value="#ef4444"></div>
+                        <div class="swatch" style="background: #f59e0b;" data-type="color" data-value="#f59e0b"></div>
+                        <div class="swatch" style="background: #10b981;" data-type="color" data-value="#10b981"></div>
+                        <div class="swatch" style="background: #3b82f6;" data-type="color" data-value="#3b82f6"></div>
+                        <div class="swatch" style="background: #8b5cf6;" data-type="color" data-value="#8b5cf6"></div>
+
+                        <!-- Color Input -->
+                        <div
+                            style="position: relative; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer;">
+                            <input type="color" id="customColorInput"
+                                style="position: absolute; top:-50%; left: -50%; width: 200%; height: 200%; cursor: pointer;">
+                        </div>
+
+                        <!-- Image Upload for BG -->
+                        <button class="custom-upload-btn" onclick="document.getElementById('bgImageInput').click()">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Image
+                        </button>
+                        <input type="file" id="bgImageInput" accept="image/*" hidden>
+                    </div>
                 </div>
-                <a href="{{ obj.processed_image.url }}" download class="download-btn">
-                    <button style="background: #10b981;">Download PNG</button>
+
+                <a href="" id="downloadLink" download class="download-btn">
+                    <button style="background: #10b981; margin-top: 20px;">Download Result</button>
                 </a>
             </div>
+
+            {% if success %}
+            <script>
+                // Fallback for standard POST
+                window.addEventListener('load', () => {
+                    document.getElementById('resultContainer').style.display = 'block';
+                    document.getElementById('resultImage').src = "{{ obj.processed_image.url }}";
+                    document.getElementById('originalImageResult').src = "{{ obj.original_image.url }}";
+                    document.getElementById('downloadLink').href = "{{ obj.processed_image.url }}";
+                    initSlider();
+                });
+            </script>
             {% endif %}
+
         </section>
 
         <footer style="margin-top: 60px; color: #475569; font-size: 0.9rem;">
@@ -197,11 +445,350 @@
         </footer>
     </div>
 
+    <!-- Hidden Canvas for Composition -->
+    <canvas id="compositionCanvas" style="display: none;"></canvas>
+
     <script>
-        document.getElementById('uploadForm').onsubmit = function() {
-            document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const dropContent = document.querySelector('.drop-content');
+        const actionButtons = document.getElementById('actionButtons');
+        const uploadForm = document.getElementById('uploadForm');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('resultContainer');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Background control elements
+        const bgLayer = document.getElementById('bgLayer');
+        const colorPicker = document.getElementById('colorPicker');
+        const customColorInput = document.getElementById('customColorInput');
+        const bgImageInput = document.getElementById('bgImageInput');
+        const downloadLink = document.getElementById('downloadLink');
+        const compositionCanvas = document.getElementById('compositionCanvas');
+
+        // State for background
+        let currentBgState = {
+            type: 'transparent',
+            value: null, // hex color or image url
+            imgObj: null // loaded background image object
         };
+
+        // Drag & Drop Events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('highlight');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', (e) => {
+            if (e.target !== fileInput) fileInput.click();
+        });
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files; // Assign to input for form submission
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function () {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = function () {
+                        previewImage.src = reader.result;
+                        previewImage.style.display = 'block';
+                        dropContent.style.display = 'none';
+                        actionButtons.style.display = 'flex';
+                        resultContainer.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        document.getElementById('clearBtn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering dropZone click
+            fileInput.value = '';
+            previewImage.src = '';
+            previewImage.style.display = 'none';
+            dropContent.style.display = 'flex';
+            actionButtons.style.display = 'none';
+            resultContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+        });
+
+        // AJAX Submission
+        uploadForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            actionButtons.style.display = 'none';
+            loader.style.display = 'block';
+            errorMessage.style.display = 'none';
+            resultContainer.style.display = 'none';
+
+            // Reset background state
+            resetBackgroundState();
+
+            fetch('', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    loader.style.display = 'none';
+                    actionButtons.style.display = 'flex';
+
+                    if (data.success) {
+                        resultContainer.style.display = 'block';
+
+                        const resImg = document.getElementById('resultImage');
+                        const origImg = document.getElementById('originalImageResult');
+
+                        resImg.src = data.processed_url;
+                        origImg.src = data.original_url;
+
+                        // Reset download link to direct file
+                        downloadLink.onclick = null; // Remove old listeners
+                        downloadLink.href = data.processed_url;
+                        downloadLink.setAttribute('download', 'processed_image.png');
+
+                        // Wait for processed image to load before init slider (for dimensions)
+                        resImg.onload = () => {
+                            initSlider();
+                            // Scroll to result
+                            resultContainer.scrollIntoView({ behavior: 'smooth' });
+                        };
+                    } else {
+                        errorMessage.textContent = "Something went wrong. Please try again.";
+                        errorMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loader.style.display = 'none';
+                    actionButtons.style.display = 'flex';
+                    errorMessage.textContent = "Error processing image. The server might be busy or the file too large.";
+                    errorMessage.style.display = 'block';
+                });
+        });
+
+        // Background Logic
+        function resetBackgroundState() {
+            currentBgState = { type: 'transparent', value: null, imgObj: null };
+            bgLayer.style.background = 'none';
+
+            // UI Reset
+            document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+            document.querySelector('.swatch.transparent').classList.add('active');
+        }
+
+        // Color Swatches
+        document.querySelectorAll('.swatch').forEach(swatch => {
+            swatch.addEventListener('click', function () {
+                // Update UI
+                document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+
+                const type = this.dataset.type;
+                if (type === 'transparent') {
+                    bgLayer.style.background = 'none';
+                    currentBgState = { type: 'transparent', value: null };
+                } else {
+                    const color = this.dataset.value;
+                    bgLayer.style.background = color;
+                    currentBgState = { type: 'color', value: color };
+                }
+            });
+        });
+
+        // Custom Color Input
+        customColorInput.addEventListener('input', function () {
+            // Update UI: remove active from swatches
+            document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+
+            const color = this.value;
+            bgLayer.style.background = color;
+            currentBgState = { type: 'color', value: color };
+        });
+
+        // Custom Background Image
+        bgImageInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const bgUrl = e.target.result;
+                    bgLayer.style.background = `url(${bgUrl})`;
+                    bgLayer.style.backgroundSize = 'cover';
+                    bgLayer.style.backgroundPosition = 'center';
+
+                    // Preload image for canvas
+                    const img = new Image();
+                    img.src = bgUrl;
+
+                    currentBgState = { type: 'image', value: bgUrl, imgObj: img };
+
+                    // UI Update
+                    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Intercept Download
+        downloadLink.addEventListener('click', function (e) {
+            // If state is transparent, let normal download happen (href is set to processed url)
+            if (currentBgState.type === 'transparent') return;
+
+            // Otherwise, we need to composite
+            e.preventDefault();
+
+            const btn = this.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = "Generating...";
+
+            compositeImage().then(blob => {
+                const url = URL.createObjectURL(blob);
+                const tempLink = document.createElement('a');
+                tempLink.href = url;
+                tempLink.download = 'magic_remover_edit.png';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+
+                btn.textContent = originalText;
+            }).catch(err => {
+                console.error(err);
+                btn.textContent = "Error";
+                setTimeout(() => btn.textContent = originalText, 2000);
+            });
+        });
+
+        function compositeImage() {
+            return new Promise((resolve, reject) => {
+                const canvas = compositionCanvas;
+                const ctx = canvas.getContext('2d');
+                const resultImg = document.getElementById('resultImage');
+
+                // Set canvas size to match the result image resolution
+                canvas.width = resultImg.naturalWidth;
+                canvas.height = resultImg.naturalHeight;
+
+                // 1. Draw Background
+                if (currentBgState.type === 'color') {
+                    ctx.fillStyle = currentBgState.value;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else if (currentBgState.type === 'image' && currentBgState.imgObj) {
+                    // Draw background image to cover (like CSS cover)
+                    const bg = currentBgState.imgObj;
+                    const scale = Math.max(canvas.width / bg.width, canvas.height / bg.height);
+                    const x = (canvas.width / 2) - (bg.width / 2) * scale;
+                    const y = (canvas.height / 2) - (bg.height / 2) * scale;
+                    ctx.drawImage(bg, x, y, bg.width * scale, bg.height * scale);
+                }
+
+                // 2. Draw Processed Image
+                ctx.drawImage(resultImg, 0, 0);
+
+                // 3. Export
+                canvas.toBlob(blob => {
+                    resolve(blob);
+                }, 'image/png');
+            });
+        }
+
+        // Comparison Slider Logic
+        function initSlider() {
+            const slider = document.getElementById('comparisonSlider');
+            const handle = slider.querySelector('.handle');
+            const modifiedWrapper = slider.querySelector('.modified'); // Using as 'Overlay' layer
+            let isDragging = false;
+
+            // Adjust aspect ratio if possible using the loaded image
+            const img = document.getElementById('resultImage');
+            if (img.naturalHeight) {
+                slider.style.aspectRatio = `${img.naturalWidth}/${img.naturalHeight}`;
+            }
+
+            // Reset
+            handle.style.left = '50%';
+            modifiedWrapper.style.width = '50%';
+
+            slider.addEventListener('mousedown', startDrag);
+            slider.addEventListener('touchstart', startDrag);
+
+            window.addEventListener('mouseup', stopDrag);
+            window.addEventListener('touchend', stopDrag);
+
+            window.addEventListener('mousemove', moveDrag);
+            window.addEventListener('touchmove', moveDrag);
+
+            // Click to jump
+            slider.addEventListener('click', moveDrag);
+
+            function startDrag(e) {
+                isDragging = true;
+                moveDrag(e); // Configure position on start
+            }
+
+            function stopDrag() {
+                isDragging = false;
+            }
+
+            function moveDrag(e) {
+                if (!isDragging && e.type !== 'click') return;
+
+                let clientX = e.clientX;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                }
+
+                const rect = slider.getBoundingClientRect();
+                let x = clientX - rect.left;
+
+                if (x < 0) x = 0;
+                if (x > rect.width) x = rect.width;
+
+                const percentage = (x / rect.width) * 100;
+
+                handle.style.left = percentage + '%';
+                modifiedWrapper.style.width = percentage + '%';
+            }
+        }
     </script>
 </body>
+
 </html>
